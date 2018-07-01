@@ -106,9 +106,30 @@ sudo systemctl daemon-reload
 sudo systemctl enable lcdd.service
 sudo systemctl enable aclock.service
 sudo systemctl start  lcdd.service
-sudo systemctl start  aclock.service
 
 That *should* be everything you need!
+
+### Running the first time
+
+First, you'll need a client_secrets.json file from Google, representing
+this app. Explaining how to do that is beyond the scope of this readme,
+but basically, you use the Google Developer's Console to create a project,
+enable the Calendar API for that project, and then ask it to spit out 
+credentials for a command-line app.
+
+You'll need to provide credentials for your calendar the first time you 
+run the program. The way this usually works is that you run clock.pl,
+it will spit out an url, which you then copy and paste into a web browser,
+and you then you log in and grant the required permissions, and then you
+get a code to paste back into the program. Once you've done that, the token
+will be stored and re-used, so you won't be prompted to login again.
+
+Once everything is working nicely, then kill you clock.pl and instead
+restart it the way it was intended:
+
+```
+sudo systemctl start  aclock.service
+```
 
 ## Hardware hookup
 
