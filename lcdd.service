@@ -1,0 +1,14 @@
+[Unit]
+Description=LCDProc Daemon
+
+[Service]
+Type=forking
+Restart=always
+User=root
+RestartSec=10
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+WorkingDirectory=/home/pi/aclock
+ExecStart=/usr/local/sbin/LCDd
+
+[Install]
+WantedBy=multi-user.target

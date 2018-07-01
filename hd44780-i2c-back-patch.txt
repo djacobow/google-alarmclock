@@ -1,0 +1,182 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ lcdproc (0.5.6) unstable; urgency=low
+ .
+   * Applied patch to cope with new automake 1.11.3 (Thanks Andreas)
+     (Closes: #661343)
+   * control: bumped standard-version to 3.9.3 (no other changes)
+   * copyright: updated format URL
+Author: Dominique Dumont <dod@debian.org>
+Bug-Debian: http://bugs.debian.org/661343
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- lcdproc-0.5.6.orig/server/drivers/hd44780-i2c.c
++++ lcdproc-0.5.6/server/drivers/hd44780-i2c.c
+@@ -76,14 +76,13 @@ void i2c_HD44780_senddata(PrivateData *p
+ void i2c_HD44780_backlight(PrivateData *p, unsigned char state);
+ void i2c_HD44780_close(PrivateData *p);
+ 
+-#define RS	0x10
+-#define RW	0x20
+-#define EN	0x40
++#define RS	0x02
++#define RW	0x01
++#define EN	0x04
+ #define BL	0x80
+ // note that the above bits are all meant for the data port of PCF8574
+ 
+ #define I2C_ADDR_MASK 0x7f
+-#define I2C_PCAX_MASK 0x80
+ 
+ static void
+ i2c_out(PrivateData *p, unsigned char val)
+@@ -91,14 +90,9 @@ i2c_out(PrivateData *p, unsigned char va
+ 	__u8 data[2];
+ 	int datalen;
+ 	static int no_more_errormsgs=0;
+-	if (p->port & I2C_PCAX_MASK) { // we have a PCA9554 or similar, that needs a 2-byte command
+-		data[0]=1; // command: read/write output port register
+-		data[1]=val;
+-		datalen=2;
+-	} else { // we have a PCF8574 or similar, that needs a 1-byte command
+-		data[0]=val;
+-		datalen=1;
+-	}
++    data[0]=0x09; // command: read/write output port register
++    data[1]=val;
++    datalen=2;
+ 	if (write(p->fd,data,datalen) != datalen) {
+ 		p->hd44780_functions->drv_report(no_more_errormsgs?RPT_DEBUG:RPT_ERR, "HD44780: I2C: i2c write data %u to address %u failed: %s",
+ 			val, p->port & I2C_ADDR_MASK, strerror(errno));
+@@ -131,7 +125,7 @@ hd_init_i2c(Driver *drvthis)
+ 	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+ 	device[sizeof(device)-1] = '\0';
+ 	report(RPT_INFO,"HD44780: I2C: Using device '%s' and address %u for a %s",
+-		device, p->port & I2C_ADDR_MASK, (p->port & I2C_PCAX_MASK) ? "PCA9554(A)" : "PCF8574(A)");
++		device, p->port & I2C_ADDR_MASK, "MCP23008");
+ 
+ 	// Open the I2C device
+ 	p->fd = open(device, O_RDWR);
+@@ -146,19 +140,16 @@ hd_init_i2c(Driver *drvthis)
+ 		return(-1);
+ 	}
+ 
+-
+-	if (p->port & I2C_PCAX_MASK) { // we have a PCA9554 or similar, that needs special config
+-		__u8 data[2];
+-		data[0] = 2; // command: set polarity inversion
+-		data[1] = 0; // -> no polarity inversion
+-		if (write(p->fd,data,2) != 2) {
+-			report(RPT_ERR, "HD44780: I2C: i2c set polarity inversion failed: %s", strerror(errno));
+-		}
+-		data[0] = 3; // command: set output direction
+-		data[1] = 0; // -> all pins are outputs
+-		if (write(p->fd,data,2) != 2) {
+-			report(RPT_ERR, "HD44780: I2C: i2c set output direction failed: %s", strerror(errno));
+-		}
++	__u8 data[2];
++    data[0] = 0x00; // command: set output direction
++    data[1] = 0x01; // -> all pins except (unused) GP0 are outputs
++    if (write(p->fd,data,2) != 2) {
++        report(RPT_ERR, "HD44780: I2C: i2c set output direction failed: %s", strerror(errno));
++    }
++	data[0] = 0x01; // command: set polarity inversion
++	data[1] = 0x00; // -> no polarity inversion
++	if (write(p->fd,data,2) != 2) {
++		report(RPT_ERR, "HD44780: I2C: i2c set polarity inversion failed: %s", strerror(errno));
+ 	}
+ 
+ 	hd44780_functions->senddata = i2c_HD44780_senddata;
+@@ -168,43 +159,43 @@ hd_init_i2c(Driver *drvthis)
+ 	// powerup the lcd now
+ 	/* We'll now send 0x03 a couple of times,
+ 	 * which is in fact (FUNCSET | IF_8BIT) >> 4 */
+-	i2c_out(p, 0x03);
++	i2c_out(p, 0x18);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+ 
+-	i2c_out(p, enableLines | 0x03);
++	i2c_out(p, enableLines | 0x18);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+-	i2c_out(p, 0x03);
++	i2c_out(p, 0x18);
+ 	hd44780_functions->uPause(p, 15000);
+ 
+-	i2c_out(p, enableLines | 0x03);
++	i2c_out(p, enableLines | 0x18);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+-	i2c_out(p, 0x03);
++	i2c_out(p, 0x18);
+ 	hd44780_functions->uPause(p, 5000);
+ 
+-	i2c_out(p, enableLines | 0x03);
++	i2c_out(p, enableLines | 0x18);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+-	i2c_out(p, 0x03);
++	i2c_out(p, 0x18);
+ 	hd44780_functions->uPause(p, 100);
+ 
+-	i2c_out(p, enableLines | 0x03);
++	i2c_out(p, enableLines | 0x18);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+-	i2c_out(p, 0x03);
++	i2c_out(p, 0x18);
+ 	hd44780_functions->uPause(p, 100);
+ 
+ 	// now in 8-bit mode...  set 4-bit mode
+-	i2c_out(p, 0x02);
++	i2c_out(p, 0x10);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+ 
+-	i2c_out(p, enableLines | 0x02);
++	i2c_out(p, enableLines | 0x10);
+ 	if (p->delayBus)
+ 		hd44780_functions->uPause(p, 1);
+-	i2c_out(p, 0x02);
++	i2c_out(p, 0x10);
+ 	hd44780_functions->uPause(p, 100);
+ 
+ 	// Set up two-line, small character (5x8) mode
+@@ -240,8 +231,8 @@ void
+ i2c_HD44780_senddata(PrivateData *p, unsigned char displayID, unsigned char flags, unsigned char ch)
+ {
+ 	unsigned char enableLines = 0, portControl = 0;
+-	unsigned char h = (ch >> 4) & 0x0f;     // high and low nibbles
+-	unsigned char l = ch & 0x0f;
++	unsigned char h = ((ch >> 4) & 0x0f) << 3;     // high and low nibbles
++	unsigned char l = (ch & 0x0f) << 3;
+ 
+ 	if (flags == RS_INSTR)
+ 		portControl = 0;
+@@ -277,7 +268,7 @@ i2c_HD44780_senddata(PrivateData *p, uns
+  */
+ void i2c_HD44780_backlight(PrivateData *p, unsigned char state)
+ {
+-	p->backlight_bit = ((!p->have_backlight||state) ? 0 : BL);
++	p->backlight_bit = ((p->have_backlight && state) ? BL : 0);
+ 
+ 	i2c_out(p, p->backlight_bit);
+ }
