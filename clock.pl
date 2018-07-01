@@ -28,7 +28,7 @@ my $cfg = {
  accounts => [
 # { user => "so.and.so\@gmail.com", password => "ixnayasswordpay" },
 # { url  => "https://www.google.com/calendar/feeds/so.and.so%40gmail.com/private-[googly_digits]/full" },
- { user => "david.jacobowitz\@gamil.com", tok_file => "oauth_tokens.json", id_pat => 'jacobowitz' },
+ { user => "david.jacobowitz\@gmail.com", tok_file => "oauth_tokens.json", id_pat => 'jacobowitz' },
  ],
  # how often to re-check the calendar. Probably once every 5 minutes
  # is plenty for most people. The only advantage of setting it shorter
