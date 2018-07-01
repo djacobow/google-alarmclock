@@ -68,12 +68,12 @@ cpanm -n Net::Google::Calendar
 cpanm -n Google::API::Client
 ```
 
-If everything is ready to go, you should be able to check with `perl -c clock.pl` to see if all the modules are found.
+If everything is ready to go, you should be able to check with `perl -c clock.pl` to see if all the modules are found. If you get errors, then find the modules one way or another, rinse, repeat. I prefer to use the apt modules if I can find them, otherwise, build from cpan.
 
 Note that I am configuring and installing local::lib, which means that to run the 
-program you will need appropriate environment variables set to point to /home/pi/perl5. The example systemd unit file `aclock.service` has them.
+program you will need appropriate environment variables set to point to /home/pi/perl5. The example systemd unit file `aclock.service` has them. Alternatively, you can run cpanm as sudo and install modules globally.
 
-### build and install lcdproc
+### Build and install lcdproc
 
 The code talks to an HD44780 4x20 display driven by an i2c controller (MCP23008).
 lcdproc is a nice library for doing this, but it requires a background daemon.
@@ -109,5 +109,12 @@ sudo systemctl start  lcdd.service
 sudo systemctl start  aclock.service
 
 That *should* be everything you need!
+
+## Hardware hookup
+
+The i2c signals are on the standard i2c pins on the RPi GPIO.
+
+The other GPIOs used (for dinging, snooze, and snooze led) are specified in 
+dinger.pm.
 
 
