@@ -41,7 +41,6 @@ First, install a bunch of modules, mostly Perl libraries:
 ```
 sudo apt install \
 libdatetime-perl \
-libnet-address-ip-local  \
 libnet-address-ip-local-perl  \
 libdatetime-format-rfc3339-perl  \
 libwww-perl \
@@ -52,7 +51,7 @@ cpanminus \
 libdata-ical-perl  \
 libinline-perl \
 libncurses-dev \
-install wiringpi \
+wiringpi \
 git 
 ```
 

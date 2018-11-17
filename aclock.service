@@ -12,8 +12,8 @@ Environment=PERL_MM_OPT="INSTALL_BASE=/home/pi/perl5"
 Environment=PERL_LOCAL_LIB_ROOT=/home/pi/perl5
 Environment=PERL5LIB=/home/pi/perl5/lib/perl5
 
-WorkingDirectory=/home/pi/aclock
-ExecStart=/usr/bin/perl /home/pi/aclock/clock.pl
+WorkingDirectory=/home/pi/google-alarmclock
+ExecStart=/usr/bin/perl /home/pi/google-alarmclock/clock.pl
 
 [Install]
 WantedBy=multi-user.target

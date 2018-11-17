@@ -6,6 +6,7 @@ BEGIN { $ENV{PERL_JSON_BACKEND} = 'JSON::PP' };
 
 use FindBin;
 use lib "$FindBin::Bin";
+use local::lib;
 
 use strict;
 use warnings qw(all);

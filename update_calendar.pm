@@ -1,6 +1,8 @@
 use strict;
 use warnings qw(all);
 
+use local::lib;
+
 package update_calendar;
 
 use DateTime;

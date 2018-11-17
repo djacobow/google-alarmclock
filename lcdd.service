@@ -7,7 +7,7 @@ Restart=always
 User=root
 RestartSec=10
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
-WorkingDirectory=/home/pi/aclock
+WorkingDirectory=/home/pi/google-alarmclock
 ExecStart=/usr/local/sbin/LCDd
 
 [Install]
